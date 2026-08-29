@@ -202,7 +202,6 @@ button { font: inherit; }
   width: 100%;
   aspect-ratio: 1600 / 679;
   object-fit: cover;
-  max-height: 46vh;
 }
 .hero-copy { padding-block: 2rem 3rem; max-width: 60ch; }
 .hero h1 {
@@ -235,9 +234,6 @@ button { font: inherit; }
   border-radius: 999px;
 }
 
-@media (min-width: 900px) {
-  .hero-img { max-height: 52vh; }
-}
 
 /* ---------- About ---------- */
 .about { padding-block: 3rem; background: var(--color-bg-alt); }
