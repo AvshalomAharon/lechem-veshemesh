@@ -17,7 +17,6 @@
   --wrap-width: 1120px;
   --header-h: 68px;
 
-  --shadow-soft: 0 10px 30px -18px rgba(74, 53, 37, 0.35);
 }
 
 /* ---------- Reset ---------- */
@@ -198,24 +197,17 @@ button { font: inherit; }
 }
 
 /* ---------- Hero ---------- */
-.hero { padding-block: 2.5rem 3rem; }
-.hero-grid {
-  display: grid;
-  gap: 2rem;
+.hero-media { line-height: 0; }
+.hero-img {
+  width: 100%;
+  aspect-ratio: 1600 / 679;
+  object-fit: cover;
+  max-height: 46vh;
 }
-.eyebrow {
-  display: inline-block;
-  color: var(--color-accent-dark);
-  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
-  font-weight: 700;
-  font-size: 0.85rem;
-  padding: 0.35rem 0.9rem;
-  border-radius: 999px;
-  margin-bottom: 1rem;
-}
+.hero-copy { padding-block: 2rem 3rem; max-width: 60ch; }
 .hero h1 {
   font-size: clamp(2rem, 6vw, 3rem);
-  margin-bottom: 0.6em;
+  margin-bottom: 0.5em;
 }
 .hero-lead {
   font-size: 1.1rem;
@@ -242,20 +234,9 @@ button { font: inherit; }
   padding: 0.4rem 0.85rem;
   border-radius: 999px;
 }
-.hero-img {
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-soft);
-  aspect-ratio: 1600 / 679;
-  object-fit: cover;
-  width: 100%;
-}
 
 @media (min-width: 900px) {
-  .hero-grid {
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-  }
-  .hero-media { order: -1; }
+  .hero-img { max-height: 52vh; }
 }
 
 /* ---------- About ---------- */
@@ -306,58 +287,52 @@ section h2 {
   .product-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
-/* ---------- Delivery ticket (signature element) ---------- */
+/* ---------- Delivery ---------- */
 .delivery { background: var(--color-text); color: var(--color-bg); }
 .delivery h2 { color: var(--color-bg); }
-.ticket {
+.delivery-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+.delivery-tile {
   background: var(--color-bg);
   color: var(--color-text);
-  border-radius: 10px;
-  max-width: 520px;
-  padding: 1.75rem 1.5rem 1.5rem;
-  transform: rotate(-0.6deg);
-  box-shadow: var(--shadow-soft);
-  position: relative;
+  border-radius: var(--radius);
+  padding: 1.35rem 1.25rem;
 }
-.ticket::before {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  height: 10px;
-  background-image: radial-gradient(circle at 10px 0, transparent 6px, var(--color-text) 6.5px);
-  background-size: 20px 10px;
-  background-repeat: repeat-x;
-  transform: translateY(-9px);
+.tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--color-olive-soft);
+  color: var(--color-olive);
+  margin-bottom: 0.75rem;
 }
-.ticket-row {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-areas: "icon label" "icon value";
-  column-gap: 0.75rem;
-  align-items: start;
-  padding-block: 0.65rem;
-  border-bottom: 1px dashed var(--color-border);
-}
-.ticket-row:last-of-type { border-bottom: none; }
-.ticket-icon {
-  grid-area: icon;
-  width: 22px; height: 22px;
-  color: var(--color-accent);
-  align-self: center;
-}
-.ticket-label {
-  grid-area: label;
+.tile-icon svg { width: 20px; height: 20px; }
+.tile-label {
   font-size: 0.78rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-soft);
+  margin: 0 0 0.3em;
 }
-.ticket-value {
-  grid-area: value;
-  font-weight: 600;
+.tile-value { font-weight: 600; margin: 0; }
+.delivery-cta { padding-top: 1.75rem; text-align: center; }
+
+@media (min-width: 560px) {
+  .delivery-grid { grid-template-columns: repeat(2, 1fr); }
+  .delivery-tile:last-child {
+    grid-column: 1 / -1;
+    max-width: 320px;
+    margin-inline: auto;
+    text-align: center;
+  }
+  .delivery-tile:last-child .tile-icon { margin-inline: auto; }
 }
-.ticket-cta { padding-top: 1.25rem; text-align: center; }
 
 /* ---------- How it works ---------- */
 .steps {
