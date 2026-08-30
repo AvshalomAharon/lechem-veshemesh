@@ -223,9 +223,63 @@
   <section class="order" id="order">
     <div class="wrap order-inner">
       <h2>הזמנה לבוקר</h2>
-      <p class="order-lead">כותבים מה תרצו, ואנחנו נחזור לתאם. תשלום מתבצע בדלת – במזומן או בהעברה. מינימום הזמנה 40 ₪, סגירת הזמנות עד 20:00 בערב שלפני המשלוח.</p>
+      <p class="order-lead">בוחרים מוצרים ומשאירים פרטים – ואנחנו נדאג לשאר. תשלום מתבצע בדלת, במזומן או בהעברה. מינימום הזמנה 40 ₪, סגירת הזמנות עד השעה 20:00 בערב שלפני המשלוח.</p>
 
       <form id="orderForm" class="order-form" novalidate>
+        <fieldset class="field product-picker">
+          <legend>מה תרצו להזמין</legend>
+
+          <div class="product-select" data-product-name="לחם כפרי מחמצת" data-product-price="32">
+            <div class="product-select-info">
+              <span class="product-select-name">לחם כפרי מחמצת</span>
+              <span class="product-select-price">32 ₪</span>
+            </div>
+            <div class="qty-stepper">
+              <button type="button" class="qty-btn" data-action="decrease" aria-label="הפחתת כמות ללחם כפרי מחמצת">−</button>
+              <input type="number" class="qty-input" inputmode="numeric" min="0" max="20" step="1" value="0" aria-label="כמות ללחם כפרי מחמצת">
+              <button type="button" class="qty-btn" data-action="increase" aria-label="הוספת כמות ללחם כפרי מחמצת">+</button>
+            </div>
+          </div>
+
+          <div class="product-select" data-product-name="לחם שיפון" data-product-price="36">
+            <div class="product-select-info">
+              <span class="product-select-name">לחם שיפון</span>
+              <span class="product-select-price">36 ₪</span>
+            </div>
+            <div class="qty-stepper">
+              <button type="button" class="qty-btn" data-action="decrease" aria-label="הפחתת כמות ללחם שיפון">−</button>
+              <input type="number" class="qty-input" inputmode="numeric" min="0" max="20" step="1" value="0" aria-label="כמות ללחם שיפון">
+              <button type="button" class="qty-btn" data-action="increase" aria-label="הוספת כמות ללחם שיפון">+</button>
+            </div>
+          </div>
+
+          <div class="product-select" data-product-name="חלה" data-product-price="28">
+            <div class="product-select-info">
+              <span class="product-select-name">חלה <span class="badge badge-inline">שישי בלבד</span></span>
+              <span class="product-select-price">28 ₪</span>
+            </div>
+            <div class="qty-stepper">
+              <button type="button" class="qty-btn" data-action="decrease" aria-label="הפחתת כמות לחלה">−</button>
+              <input type="number" class="qty-input" inputmode="numeric" min="0" max="20" step="1" value="0" aria-label="כמות לחלה">
+              <button type="button" class="qty-btn" data-action="increase" aria-label="הוספת כמות לחלה">+</button>
+            </div>
+          </div>
+
+          <div class="product-select" data-product-name="בורקס גבינה" data-product-price="12">
+            <div class="product-select-info">
+              <span class="product-select-name">בורקס גבינה</span>
+              <span class="product-select-price">12 ₪ ליחידה</span>
+            </div>
+            <div class="qty-stepper">
+              <button type="button" class="qty-btn" data-action="decrease" aria-label="הפחתת כמות לבורקס גבינה">−</button>
+              <input type="number" class="qty-input" inputmode="numeric" min="0" max="20" step="1" value="0" aria-label="כמות לבורקס גבינה">
+              <button type="button" class="qty-btn" data-action="increase" aria-label="הוספת כמות לבורקס גבינה">+</button>
+            </div>
+          </div>
+
+          <p class="field-hint" id="productsHint">מינימום הזמנה 40 ₪.</p>
+        </fieldset>
+
         <div class="field">
           <label for="fullName">שם מלא</label>
           <input type="text" id="fullName" name="fullName" autocomplete="name" required>
@@ -237,18 +291,18 @@
         </div>
 
         <div class="field">
+          <label for="email">מייל</label>
+          <input type="email" id="email" name="email" autocomplete="email" required>
+        </div>
+
+        <div class="field">
           <label for="address">כתובת למשלוח</label>
           <input type="text" id="address" name="address" autocomplete="street-address" required aria-describedby="addressHint">
           <p class="field-hint" id="addressHint">המשלוחים בשלב זה מוגבלים לרחוב הרצל, מסדה, החלוץ, ביאליק והסמטאות שביניהם.</p>
         </div>
 
         <div class="field">
-          <label for="orderDetails">מה תרצו להזמין</label>
-          <textarea id="orderDetails" name="orderDetails" rows="3" required placeholder="לדוגמה: לחם כפרי מחמצת אחד, 4 בורקס גבינה"></textarea>
-        </div>
-
-        <div class="field">
-          <label for="notes">הערות (לא חובה)</label>
+          <label for="notes">הערות למשלוח (לא חובה)</label>
           <textarea id="notes" name="notes" rows="2" placeholder="קומה, קוד לבניין, הנחיות הגעה..."></textarea>
         </div>
 
