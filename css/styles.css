@@ -200,7 +200,7 @@ button { font: inherit; }
 .hero-media { line-height: 0; }
 .hero-img {
   width: 100%;
-  aspect-ratio: 1600 / 679;
+  aspect-ratio: 1584 / 672;
   object-fit: cover;
 }
 .hero-copy { padding-block: 2rem 3rem; max-width: 60ch; }

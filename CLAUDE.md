@@ -371,6 +371,8 @@ Website Order Form
 
 Hero asset מרכזי יכול להיטען ב־priority מתאים.
 
+**עדכון 30.08.2026 — אחסון תמונות עבר ל-Cloudinary:** כל תמונות הקבועות (לוגו, באנר, 4 תמונות מוצרים) מועלות ל-Cloudinary תחת `lechem-veshemesh/branding/` ו-`lechem-veshemesh/products/` (cloud name: `hno6nbir`), ונטענות באתר ובמיילים ישירות מ-URL עם `f_auto,q_auto` (אופטימיזציית פורמט/איכות אוטומטית, אין יותר קבצי WebP מקומיים כפולים). התמונות המקוריות עדיין נשמרות ב-`תמונות/` בפרויקט כמקור אמת/גיבוי, אבל האתר וה-workflow ב-n8n לא קוראים מהן יותר. כשמוסיפים תמונה חדשה: להעלות ל-Cloudinary לתיקייה המתאימה ואז לקשר ב-URL, לא לשמור עותק מקומי ב-`assets/img/`.
+
 ---
 
 # Visual Direction
