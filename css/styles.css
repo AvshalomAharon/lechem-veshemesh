@@ -406,8 +406,6 @@ section h2 {
   margin-bottom: 0.2rem;
 }
 .product-select {
-  position: relative;
-  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -431,26 +429,9 @@ section h2 {
   border-radius: 999px;
   vertical-align: middle;
 }
-.unavailable-ribbon { display: none; }
 .product-select.is-unavailable .product-select-info,
 .product-select.is-unavailable .qty-stepper {
   opacity: 0.4;
-}
-.product-select.is-unavailable .unavailable-ribbon {
-  display: block;
-  position: absolute;
-  top: 11px;
-  left: -34px;
-  width: 140px;
-  padding: 3px 0;
-  background: var(--color-olive);
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-align: center;
-  letter-spacing: 0.01em;
-  transform: rotate(-40deg);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 .qty-stepper {
   display: flex;
