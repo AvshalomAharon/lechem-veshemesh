@@ -42,6 +42,43 @@
   var orderSummaryEl = document.getElementById("orderSummary");
   var orderSummaryTotalEl = document.getElementById("orderSummaryTotal");
   var productsHintEl = document.getElementById("productsHint");
+  var confirmationEl = document.getElementById("orderConfirmation");
+  var confirmationOrderNumberEl = document.getElementById("confirmationOrderNumber");
+  var orderAnotherBtn = document.getElementById("orderAnotherBtn");
+
+  /* ---------- Challah ordering window ----------
+   * Challah is delivered Fridays only, so it can only be ordered during the
+   * window that actually leads to a Friday delivery: from Wednesday 20:00
+   * (right after Thursday's own cutoff closes) through Thursday 20:00 (the
+   * cutoff for Friday delivery). Computed in Israel time regardless of the
+   * visitor's own timezone/clock.
+   */
+  function isChallahOrderable() {
+    var parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Jerusalem",
+      weekday: "short",
+      hour: "numeric",
+      hourCycle: "h23"
+    }).formatToParts(new Date());
+
+    var weekday, hour;
+    parts.forEach(function (p) {
+      if (p.type === "weekday") weekday = p.value;
+      if (p.type === "hour") hour = Number(p.value);
+    });
+
+    if (weekday === "Wed" && hour >= 20) return true;
+    if (weekday === "Thu" && hour < 20) return true;
+    return false;
+  }
+
+  var challahRow = document.getElementById("challahRow");
+  if (challahRow && !isChallahOrderable()) {
+    challahRow.classList.add("is-unavailable");
+    challahRow.querySelectorAll(".qty-btn, .qty-input").forEach(function (el) {
+      el.disabled = true;
+    });
+  }
 
   /* ---------- Quantity steppers ---------- */
   var productRows = Array.prototype.slice.call(form.querySelectorAll(".product-select"));
@@ -143,6 +180,26 @@
     submitBtn.querySelector(".btn-label").textContent = state ? "שולח..." : "שליחת הזמנה";
   }
 
+  function showConfirmation(orderNumber) {
+    if (confirmationOrderNumberEl) {
+      confirmationOrderNumberEl.textContent = orderNumber ? "#" + orderNumber : "התקבלה";
+    }
+    setStatus("", null);
+    form.hidden = true;
+    if (confirmationEl) {
+      confirmationEl.hidden = false;
+      confirmationEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  if (orderAnotherBtn) {
+    orderAnotherBtn.addEventListener("click", function () {
+      if (confirmationEl) confirmationEl.hidden = true;
+      form.hidden = false;
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   form.addEventListener("submit", function (event) {
     event.preventDefault();
 
@@ -190,12 +247,9 @@
       })
       .then(function (result) {
         var orderNumber = result && result.orderNumber;
-        var message = orderNumber
-          ? "הזמנתך התקבלה בהצלחה! מספר ההזמנה שלך: " + orderNumber
-          : "הזמנתך התקבלה בהצלחה!";
-        setStatus(message, "success");
         form.reset();
         updateOrderSummary();
+        showConfirmation(orderNumber);
       })
       .catch(function () {
         setStatus("השליחה נכשלה. אפשר לנסות שוב, או להזמין בטלפון 04-000-0000.", "error");

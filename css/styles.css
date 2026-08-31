@@ -406,6 +406,8 @@ section h2 {
   margin-bottom: 0.2rem;
 }
 .product-select {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -428,6 +430,27 @@ section h2 {
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
   vertical-align: middle;
+}
+.unavailable-ribbon { display: none; }
+.product-select.is-unavailable .product-select-info,
+.product-select.is-unavailable .qty-stepper {
+  opacity: 0.4;
+}
+.product-select.is-unavailable .unavailable-ribbon {
+  display: block;
+  position: absolute;
+  top: 11px;
+  left: -34px;
+  width: 140px;
+  padding: 3px 0;
+  background: var(--color-olive);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.01em;
+  transform: rotate(-40deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 .qty-stepper {
   display: flex;
@@ -495,6 +518,37 @@ section h2 {
 .form-status[data-state="error"] { color: #B3261E; }
 .form-status[data-state="success"] { color: var(--color-olive); }
 .form-status[data-state="info"] { color: var(--color-text-soft); }
+
+.order-confirmation[hidden] { display: none; }
+.order-confirmation {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  text-align: center;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 2.5rem 1.5rem;
+}
+.order-confirmation-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.order-confirmation-icon svg { width: 26px; height: 26px; }
+.order-confirmation h3 {
+  font-size: 1.3rem;
+  margin: 0.2rem 0 0;
+}
+.order-confirmation-number { margin: 0; font-size: 1rem; }
+.order-confirmation-number strong { color: var(--color-accent-dark); font-size: 1.35rem; }
+.order-confirmation-note { margin: 0; color: var(--color-text-soft); font-size: 0.9rem; max-width: 38ch; }
+.order-confirmation .btn-ghost { margin-top: 0.5rem; }
 
 /* ---------- Contact ---------- */
 .contact-inner { }
