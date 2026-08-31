@@ -39,6 +39,10 @@
   var MIN_ORDER = 40;
   var isSubmitting = false;
 
+  var orderSummaryEl = document.getElementById("orderSummary");
+  var orderSummaryTotalEl = document.getElementById("orderSummaryTotal");
+  var productsHintEl = document.getElementById("productsHint");
+
   /* ---------- Quantity steppers ---------- */
   var productRows = Array.prototype.slice.call(form.querySelectorAll(".product-select"));
 
@@ -53,12 +57,16 @@
         var next = btn.getAttribute("data-action") === "increase" ? current + 1 : current - 1;
         next = Math.max(min, Math.min(max, next));
         input.value = String(next);
+        updateOrderSummary();
       });
     });
+
+    input.addEventListener("input", updateOrderSummary);
 
     input.addEventListener("change", function () {
       var value = Math.max(min, Math.min(max, Number(input.value) || 0));
       input.value = String(value);
+      updateOrderSummary();
     });
   });
 
@@ -83,6 +91,28 @@
 
   function productsSummary(products) {
     return products.map(function (p) { return p.name + " x" + p.quantity; }).join(", ");
+  }
+
+  function updateOrderSummary() {
+    var total = productsTotal(getSelectedProducts());
+
+    if (orderSummaryTotalEl) orderSummaryTotalEl.textContent = total + " ₪";
+
+    var belowMinimum = total > 0 && total < MIN_ORDER;
+    if (orderSummaryEl) orderSummaryEl.classList.toggle("is-below-minimum", belowMinimum);
+
+    if (productsHintEl) {
+      if (total === 0) {
+        productsHintEl.textContent = "מינימום הזמנה " + MIN_ORDER + " ₪.";
+        productsHintEl.classList.remove("is-positive");
+      } else if (belowMinimum) {
+        productsHintEl.textContent = "עוד " + (MIN_ORDER - total) + " ₪ להשלמת מינימום ההזמנה.";
+        productsHintEl.classList.remove("is-positive");
+      } else {
+        productsHintEl.textContent = "מינימום ההזמנה הושלם.";
+        productsHintEl.classList.add("is-positive");
+      }
+    }
   }
 
   function setStatus(message, state) {
@@ -165,6 +195,7 @@
           : "הזמנתך התקבלה בהצלחה!";
         setStatus(message, "success");
         form.reset();
+        updateOrderSummary();
       })
       .catch(function () {
         setStatus("השליחה נכשלה. אפשר לנסות שוב, או להזמין בטלפון 04-000-0000.", "error");

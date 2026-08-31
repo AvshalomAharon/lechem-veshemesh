@@ -466,6 +466,26 @@ section h2 {
 .qty-input::-webkit-outer-spin-button,
 .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
+.order-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 0.3rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: var(--color-olive-soft);
+}
+.order-summary-label { font-weight: 700; font-size: 0.9rem; color: var(--color-text); }
+.order-summary-total {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--color-accent-dark);
+  transition: color 0.15s ease;
+}
+.order-summary.is-below-minimum .order-summary-total { color: var(--color-olive); }
+
+.field-hint.is-positive { color: var(--color-olive); font-weight: 600; }
+
 .btn-submit { width: 100%; }
 .form-status {
   margin: 0;
