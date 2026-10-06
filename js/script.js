@@ -35,6 +35,54 @@
     });
   }
 
+  /* ---------- Floating order bar (mobile) ----------
+   * Shown once the hero is scrolled past, hidden while the order section is on
+   * screen. Without IntersectionObserver the bar simply stays hidden.
+   */
+  function initOrderBar() {
+    var bar = document.getElementById("orderBar");
+    var heroCard = document.querySelector(".hero-card");
+    var orderSection = document.getElementById("order");
+    if (!bar || !heroCard || !orderSection || !("IntersectionObserver" in window)) return;
+
+    var heroPassed = false;
+    var orderOnScreen = false;
+
+    function update() {
+      var show = heroPassed && !orderOnScreen;
+      bar.classList.toggle("is-visible", show);
+      document.body.classList.toggle("has-order-bar", show);
+    }
+
+    new IntersectionObserver(function (entries) {
+      var entry = entries[entries.length - 1];
+      heroPassed = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+      update();
+    }).observe(heroCard);
+
+    new IntersectionObserver(function (entries) {
+      orderOnScreen = entries[entries.length - 1].isIntersecting;
+      update();
+    }).observe(orderSection);
+  }
+
+  initOrderBar();
+
+  /* ---------- Chat launcher: compact while scrolling ---------- */
+  function initChatScrollState() {
+    var root = document.getElementById("chat");
+    if (!root) return;
+    var timer = null;
+
+    window.addEventListener("scroll", function () {
+      root.classList.add("is-scrolling");
+      clearTimeout(timer);
+      timer = setTimeout(function () { root.classList.remove("is-scrolling"); }, 700);
+    }, { passive: true });
+  }
+
+  initChatScrollState();
+
   /* ---------- Chat assistant ----------
    * Posts { action, sessionId, chatInput } to the n8n Chat Trigger and shows the
    * { output } text. A reply is shown only after a real successful response; on

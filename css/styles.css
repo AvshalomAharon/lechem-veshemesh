@@ -727,6 +727,24 @@ section h2 {
 }
 .chat-launcher:hover, .chat-launcher:focus-visible { background: var(--color-accent-dark); }
 
+/* While the page scrolls the launcher collapses to its icon and turns translucent. */
+.chat { transition: bottom 0.25s ease; }
+.chat-launcher {
+  transition: padding 0.25s ease, gap 0.25s ease, opacity 0.25s ease, background-color 0.15s ease;
+}
+.chat-launcher span {
+  max-width: 12rem;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 0.25s ease, opacity 0.25s ease;
+}
+.chat.is-scrolling .chat-launcher {
+  gap: 0;
+  padding-inline: 13px;
+  opacity: 0.6;
+}
+.chat.is-scrolling .chat-launcher span { max-width: 0; opacity: 0; }
+
 .chat-panel {
   position: fixed;
   inset-inline: 0;
@@ -850,6 +868,30 @@ section h2 {
 .site-footer p { margin: 0.25em 0; }
 /* Room under the footer content so the floating chat button never covers it. */
 .site-footer { padding-bottom: 5.5rem; }
+/* Floating order bar, phones only. */
+.order-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 60;
+  padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
+  background: rgba(253, 251, 247, 0.95);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--color-border);
+  transform: translateY(100%);
+  visibility: hidden;
+  transition: transform 0.25s ease, visibility 0.25s;
+}
+.order-bar.is-visible { transform: none; visibility: visible; }
+.order-bar .btn { width: 100%; }
+/* Keep the chat launcher above the bar while it is showing. */
+body.has-order-bar .chat { bottom: calc(5rem + env(safe-area-inset-bottom)); }
+.site-footer { padding-bottom: 9rem; }
+@media (min-width: 860px) {
+  .order-bar { display: none; }
+  .site-footer { padding-bottom: 5.5rem; }
+}
+
 .footer-admin {
   margin-top: 1.25rem;
   min-height: 44px;
