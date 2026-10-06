@@ -185,7 +185,18 @@
 
   var orderSummaryEl = document.getElementById("orderSummary");
   var orderSummaryTotalEl = document.getElementById("orderSummaryTotal");
+  var orderSummaryLabelEl = document.getElementById("orderSummaryLabel");
   var productsHintEl = document.getElementById("productsHint");
+  var deliveryFeeNoteEl = document.getElementById("deliveryFeeNote");
+  var orderBreakdownEl = document.getElementById("orderBreakdown");
+  var breakdownProductsEl = document.getElementById("breakdownProducts");
+  var breakdownFeeEl = document.getElementById("breakdownFee");
+  var breakdownTotalEl = document.getElementById("breakdownTotal");
+
+  // Delivery fee in ₪ per order (0 = no fee, nothing is shown). It starts from the value
+  // written into the HTML by api/index.js and is refreshed from the prices endpoint.
+  // It is added on top of the products and is NOT counted toward MIN_ORDER.
+  var deliveryFee = deliveryFeeNoteEl ? (Number(deliveryFeeNoteEl.getAttribute("data-delivery-fee")) || 0) : 0;
   var confirmationEl = document.getElementById("orderConfirmation");
   var confirmationOrderNumberEl = document.getElementById("confirmationOrderNumber");
   var orderAnotherBtn = document.getElementById("orderAnotherBtn");
@@ -274,10 +285,33 @@
     return products.map(function (p) { return p.name + " x" + p.quantity; }).join(", ");
   }
 
+  function updateDeliveryFeeNote() {
+    if (!deliveryFeeNoteEl) return;
+    if (deliveryFee > 0) {
+      deliveryFeeNoteEl.textContent = "דמי משלוח: " + formatPrice(deliveryFee) + " ₪ (לא נכללים במינימום ההזמנה).";
+      deliveryFeeNoteEl.hidden = false;
+    } else {
+      deliveryFeeNoteEl.textContent = "";
+      deliveryFeeNoteEl.hidden = true;
+    }
+  }
+
   function updateOrderSummary() {
     var total = productsTotal(getSelectedProducts());
 
-    if (orderSummaryTotalEl) orderSummaryTotalEl.textContent = total + " ₪";
+    if (orderSummaryTotalEl) orderSummaryTotalEl.textContent = formatPrice(total) + " ₪";
+    if (orderSummaryLabelEl) orderSummaryLabelEl.textContent = deliveryFee > 0 ? "סכום ההזמנה" : "סה\"כ";
+
+    // With a delivery fee, once the minimum is reached show order + delivery = total to pay.
+    if (orderBreakdownEl) {
+      var showBreakdown = deliveryFee > 0 && total >= MIN_ORDER;
+      orderBreakdownEl.hidden = !showBreakdown;
+      if (showBreakdown) {
+        if (breakdownProductsEl) breakdownProductsEl.textContent = formatPrice(total) + " ₪";
+        if (breakdownFeeEl) breakdownFeeEl.textContent = formatPrice(deliveryFee) + " ₪";
+        if (breakdownTotalEl) breakdownTotalEl.textContent = formatPrice(total + deliveryFee) + " ₪";
+      }
+    }
 
     var belowMinimum = total > 0 && total < MIN_ORDER;
     if (orderSummaryEl) orderSummaryEl.classList.toggle("is-below-minimum", belowMinimum);
@@ -317,7 +351,16 @@
     return valid ? prices : null;
   }
 
-  function applyPrices(prices) {
+  function parseDeliveryFee(data) {
+    var fee = data && data.deliveryFee;
+    return typeof fee === "number" && isFinite(fee) && fee >= 0 ? fee : null;
+  }
+
+  function applyPrices(prices, fee) {
+    if (fee !== null) {
+      deliveryFee = fee;
+      updateDeliveryFeeNote();
+    }
     document.querySelectorAll("[data-price-for]").forEach(function (el) {
       var price = prices[el.getAttribute("data-price-for")];
       if (typeof price !== "number") return;
@@ -340,7 +383,7 @@
       })
       .then(function (data) {
         var prices = parsePrices(data);
-        if (prices) applyPrices(prices);
+        if (prices) applyPrices(prices, parseDeliveryFee(data));
       })
       .catch(function () { /* keep the prices already on the page */ });
   }
@@ -358,6 +401,7 @@
     return {
       products: products,
       productsSummary: productsSummary(products),
+      deliveryFee: deliveryFee,
       fullName: formData.get("fullName"),
       phone: formData.get("phone"),
       email: formData.get("email"),
@@ -482,5 +526,7 @@
     if (document.visibilityState === "visible") refreshPrices();
   }, PRICE_REFRESH_MS);
 
+  updateDeliveryFeeNote();
+  updateOrderSummary();
   loadPrices();
 })();

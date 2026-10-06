@@ -568,6 +568,35 @@ section h2 {
 .order-summary.is-below-minimum .order-summary-total { color: var(--color-olive); }
 
 .field-hint.is-positive { color: var(--color-olive); font-weight: 600; }
+.field-hint[hidden] { display: none; }
+
+/* Order + delivery fee, shown once the minimum order is reached and a fee applies. */
+.order-breakdown[hidden] { display: none; }
+.order-breakdown {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.3rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg);
+}
+.order-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-soft);
+}
+.order-breakdown-total {
+  margin-top: 0.2rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-accent-dark);
+}
 
 .btn-submit { width: 100%; }
 .form-status {

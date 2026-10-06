@@ -33,7 +33,13 @@ async function fetchPrices() {
     const response = await fetch(PRICES_ENDPOINT, { signal: controller.signal, cache: "no-store" });
     if (!response.ok) return null;
     const data = await response.json();
-    return isValidPrices(data && data.prices) ? data.prices : null;
+    if (!isValidPrices(data && data.prices)) return null;
+    // The delivery fee (whole ₪ per order, 0 = none) travels with the prices.
+    const fee = data.deliveryFee;
+    return {
+      prices: data.prices,
+      deliveryFee: typeof fee === "number" && isFinite(fee) && fee >= 0 ? fee : null
+    };
   } catch (error) {
     return null;
   } finally {
@@ -42,9 +48,10 @@ async function fetchPrices() {
 }
 
 // Rewrites only the price spots marked with data-price-for / data-product-price
-// (2 visible spots + 1 attribute per product). Returns null if the page structure
-// is not as expected, so a broken rewrite never reaches customers.
-function applyPrices(html, prices) {
+// (2 visible spots + 1 attribute per product) and the data-delivery-fee attribute.
+// Returns null if the page structure is not as expected, so a broken rewrite never
+// reaches customers.
+function applyPrices(html, prices, deliveryFee) {
   const counts = {};
   PRODUCT_NAMES.forEach(function (name) { counts[name] = { text: 0, attr: 0 }; });
 
@@ -59,16 +66,24 @@ function applyPrices(html, prices) {
     return head + prices[name] + tail;
   });
 
+  let feeSpots = 0;
+  if (deliveryFee !== null) {
+    updated = updated.replace(/(data-delivery-fee=")\d+(?:\.\d+)?(")/g, function (match, head, tail) {
+      feeSpots += 1;
+      return head + deliveryFee + tail;
+    });
+  }
+
   const intact = PRODUCT_NAMES.every(function (name) {
     return counts[name].text === 2 && counts[name].attr === 1;
-  });
+  }) && (deliveryFee === null || feeSpots === 1);
   return intact ? updated : null;
 }
 
 module.exports = async function handler(req, res) {
   const html = readIndexHtml();
-  const prices = await fetchPrices();
-  const updated = prices ? applyPrices(html, prices) : null;
+  const fetched = await fetchPrices();
+  const updated = fetched ? applyPrices(html, fetched.prices, fetched.deliveryFee) : null;
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   // Edge cache: new prices reach customers within about a minute of a price list upload.

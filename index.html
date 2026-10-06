@@ -303,10 +303,17 @@
           </div>
 
           <div class="order-summary" id="orderSummary">
-            <span class="order-summary-label">סה"כ</span>
+            <span class="order-summary-label" id="orderSummaryLabel">סה"כ</span>
             <span class="order-summary-total" id="orderSummaryTotal">0 ₪</span>
           </div>
           <p class="field-hint" id="productsHint">מינימום הזמנה 40 ₪.</p>
+          <!-- דמי משלוח: מוצגים רק כשהם גדולים מ-0. הערך ב-data-delivery-fee מגיע מהטבלה price_list (api/index.js מעדכן אותו). -->
+          <p class="field-hint" id="deliveryFeeNote" data-delivery-fee="0" hidden></p>
+          <div class="order-breakdown" id="orderBreakdown" hidden>
+            <p class="order-breakdown-row"><span>סכום ההזמנה</span><span id="breakdownProducts">0 ₪</span></p>
+            <p class="order-breakdown-row"><span>דמי משלוח</span><span id="breakdownFee">0 ₪</span></p>
+            <p class="order-breakdown-row order-breakdown-total"><span>סה"כ לתשלום</span><span id="breakdownTotal">0 ₪</span></p>
+          </div>
         </fieldset>
 
         <div class="field">
