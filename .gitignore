@@ -36,3 +36,6 @@ desktop.ini
 # Temp files
 *.tmp
 *.temp
+
+# Personal file - never commit or push
+לא למחוק.txt

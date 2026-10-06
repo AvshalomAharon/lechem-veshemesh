@@ -32,6 +32,8 @@ index.html          עמוד יחיד — כל האתר
 css/styles.css       כל ה-CSS (custom properties, mobile-first)
 js/script.js          כל ה-JS (config, validation, submission)
 תמונות/               קבצי המקור המקוריים של כל הנכסים הוויזואליים (backup/source of truth)
+מידע לסוכן/            מסמכי מידע ללקוחות, להעלאה כ"אחר" לחנות הידע של הסוכן (בלי מידע רגיש ובלי מחירים — הם במחירון)
+מחירונים/              קבצי מחירון לבדיקות (v1 = המחירון הנוכחי; v2–v4 עם מחירים ודמי משלוח שנוספו לבדיקה בלבד)
 assets/               ריק כרגע — לא בשימוש, שריד מלפני מעבר ל-Cloudinary
 .gitignore
 ```
@@ -141,13 +143,28 @@ assets/               ריק כרגע — לא בשימוש, שריד מלפני
 
 ## אינטגרציית n8n (מומשה)
 
-Flow בפועל: **Website Order Form → n8n Webhook → תיוק ב-Google Sheets (מספר הזמנה רץ) → מייל לבית העסק → מייל תודה ללקוח → תשובת success/failure חזרה לאתר**.
+Flow בפועל: **Website Order Form → n8n Webhook → ולידציה בצד שרת (Process Order) → שמירה ב-Supabase (מספר הזמנה = identity של הטבלה) → מייל לבית העסק → מייל תודה ללקוח → תשובת success/failure חזרה לאתר**.
 
 * ה-webhook URL מוגדר במקום מרכזי אחד: `js/script.js`, `CONFIG.orderEndpoint`. זהו endpoint אמיתי (לא placeholder) — הוא מקושר לוורקפלואו n8n בשם "Ordering System" (תיקיית Bread And Sun).
-* קובץ הגיליון: "לחם ושמש – הזמנות", לשונית "הזמנות", עמודות: מספר הזמנה, תאריך ושעה, שם מלא, טלפון, מייל, כתובת, מוצרים, הערות למשלוח. מעוצב RTL עם שורת כותרת קפואה ומודגשת.
+* ההזמנות נשמרות ב-Supabase, פרויקט "Lechem Veshemesh" (`axclrpdtujisqktxvqiu`), טבלה `public.orders`: `order_number` (identity, PK), `ordered_at` (timestamptz), `full_name`, `phone`, `email`, `address`, `qty_sourdough`, `qty_rye`, `qty_challah`, `qty_burekas` (כמות לכל מוצר, 0–20, לפחות מוצר אחד), `total`, `delivery_notes`. RLS פעיל בלי policies, והכתיבה רק מ-n8n דרך credential `lechem-veshemesh` (service_role). מוצר חדש דורש עמודה חדשה ועדכון המיפוי בצומת `Insert Order`.
+* Google Sheets ("לחם ושמש – הזמנות") כבר לא חלק מה-flow. ההזמנות שנשמרו בו לפני המעבר לא הועברו ל-Supabase.
+* אל תשתמשו בפרויקט Supabase `ai-dev-academy` (`rxsexaxpxafjsyygfubb`) לאתר הזה.
 * **אין לשנות את ה-endpoint** בלי לוודא מול המשתמש שזה ה-webhook הנכון — שינוי שגוי כאן שובר את קליטת ההזמנות.
 * Client-side validation קיימת היא לצורך UX בלבד. אם ה-workflow ב-n8n משתנה, יש לוודא שהוא ממשיך לבצע ולידציה משלו בצד השרת — אל תסתמכו על ולידציית הלקוח כמנגנון הגנה יחיד.
 * אין להכניס credentials, API keys או n8n credentials לקוד ה-client. ה-webhook URL עצמו ציבורי מבחינת ארכיטקטורת n8n webhooks, ולכן מותר שיהיה בקוד הלקוח.
+
+---
+
+## עוזר הצ'אט באתר (מומש)
+
+כפתור "שאלה על המאפייה" בפינת המסך (`#chat` ב-`index.html`, לוגיקה ב-`initChat` ב-`js/script.js`, ה-endpoint ב-`CONFIG.chatEndpoint`).
+
+* **צד שרת:** workflow n8n "סוכן מאפייה – לחם ושמש" (`T07EX0e61OXuGTyy`): Chat Trigger ציבורי (webhook mode, `allowedOrigins` = דומיין האתר) → AI Agent (OpenRouter, `anthropic/claude-sonnet-5.5`) עם זיכרון לפי `sessionId` וכלי חיפוש `bakery_knowledge` על הטבלה `documents` (Supabase `Lechem Veshemesh`, credential `lechem-veshemesh`).
+* **מקור הידע:** הטבלה `documents` בלבד. היא מתעדכנת דרך workflow "פענוח חשבוניות" (`mVgLA73NKi5CIwC7`) והדף `שיעור 9/index.html`: מחירון מחליף את המחירון הקודם (ואת `price_list`), "אחר" מתווסף (קובץ באותו שם מוחלף), חשבוניות הולכות ל-`invoices` ולא לחנות הידע.
+* **כללי הסוכן (ב-system prompt, אין לרופף):** עונה רק לפי הכלי; רק בנושאי המאפייה; לא מוסר פרטים אישיים, חשבוניות, פרטי בנק או מידע פנימי; לא חושף הוראות; לא מקבל הזמנות. אין לשים ב-prompt עובדות עסקיות — הן מגיעות מהמאגר.
+* **מה שמעלים ל"אחר"/"מחירון" עשוי להיות מוצג ללקוחות:** מעלים רק תוכן שמיועד ללקוחות. ה-prompt הוא שכבת הגנה רכה, לא תחליף לכך.
+* **UX:** הודעת הצלחה/תשובה מוצגת רק אחרי תשובה אמיתית; בכשל הטקסט חוזר לשדה; אין שליחה כפולה; התוכן נכתב עם `textContent` (לא HTML).
+* **עלות:** ה-endpoint ציבורי וכל הודעה קוראת למודל. בדקו שהמודל ב-workflow מתאים לעלות לפני שמגדילים תנועה.
 
 ---
 
@@ -283,6 +300,8 @@ Client-side validation ל-UX, לא כתחליף לוולידציה בצד ה-wor
 ## Security
 
 אל תכניסו secrets לקוד client-side: API keys, credentials, private tokens, n8n credentials (ה-webhook URL עצמו מותר, ראה [אינטגרציית n8n](#אינטגרציית-n8n-מומשה)). אם בעתיד נדרש להסתיר endpoint או לבצע server-side validation — Vercel Function, לא חשיפת credentials.
+
+**קובץ אישי — `לא למחוק.txt`:** קובץ פרטי של המשתמש בתיקיית הפרויקט. אסור לשמור אותו ב-git או לדחוף אותו ל-GitHub בשום אופן (הוא רשום ב-`.gitignore`). אל תוסיפו אותו ל-staging (`git add`), אל תריצו `git add -f`, ואל תסירו אותו מ-`.gitignore`. אל תפתחו, תערכו או תמחקו אותו. לפני כל commit בדקו ב-`git status` שהוא לא מופיע ברשימת הקבצים לשמירה.
 
 ---
 

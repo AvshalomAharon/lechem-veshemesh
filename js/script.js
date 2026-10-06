@@ -8,7 +8,10 @@
    * and responds with { success, orderNumber }.
    */
   var CONFIG = {
-    orderEndpoint: "https://avshalom.app.n8n.cloud/webhook/57a821a2-b150-4b14-a8cc-ead3ba117db0"
+    orderEndpoint: "https://avshalom.app.n8n.cloud/webhook/57a821a2-b150-4b14-a8cc-ead3ba117db0",
+    // n8n "סוכן מאפייה" workflow — public Chat Trigger (webhook mode). The agent
+    // answers only from the documents vector store (Supabase).
+    chatEndpoint: "https://avshalom.app.n8n.cloud/webhook/83346af6-2c60-4148-8150-b44a7687e89c/chat"
   };
 
   /* ---------- Mobile nav ---------- */
@@ -28,6 +31,144 @@
       });
     });
   }
+
+  /* ---------- Chat assistant ----------
+   * Posts { action, sessionId, chatInput } to the n8n Chat Trigger and shows the
+   * { output } text. A reply is shown only after a real successful response; on
+   * failure the user's text goes back into the input so nothing is lost.
+   */
+  function initChat() {
+    var root = document.getElementById("chat");
+    var launcher = document.getElementById("chatLauncher");
+    var panel = document.getElementById("chatPanel");
+    var closeBtn = document.getElementById("chatClose");
+    var log = document.getElementById("chatLog");
+    var chatForm = document.getElementById("chatForm");
+    var input = document.getElementById("chatInput");
+    var sendBtn = document.getElementById("chatSend");
+    var chatStatus = document.getElementById("chatStatus");
+
+    if (!root || !launcher || !panel || !log || !chatForm || !input || !sendBtn || !CONFIG.chatEndpoint) return;
+
+    var REQUEST_TIMEOUT_MS = 45000;
+    var GREETING = "שלום! אפשר לשאול אותי על המוצרים, המחירים והמשלוחים של המאפייה.";
+    var sessionId = "web-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+    var isSending = false;
+    var greeted = false;
+
+    root.hidden = false;
+
+    function addMessage(text, kind) {
+      var el = document.createElement("p");
+      el.className = "chat-msg chat-msg-" + kind;
+      el.textContent = text;
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+      return el;
+    }
+
+    function setChatStatus(message, state) {
+      chatStatus.textContent = message;
+      if (state) {
+        chatStatus.setAttribute("data-state", state);
+      } else {
+        chatStatus.removeAttribute("data-state");
+      }
+    }
+
+    function setSending(state) {
+      isSending = state;
+      sendBtn.disabled = state;
+      input.readOnly = state;
+      sendBtn.textContent = state ? "שולח..." : "שליחה";
+    }
+
+    function openChat() {
+      root.classList.add("is-open");
+      panel.hidden = false;
+      launcher.setAttribute("aria-expanded", "true");
+      if (!greeted) {
+        addMessage(GREETING, "bot");
+        greeted = true;
+      }
+      input.focus();
+    }
+
+    function closeChat() {
+      root.classList.remove("is-open");
+      panel.hidden = true;
+      launcher.setAttribute("aria-expanded", "false");
+      launcher.focus();
+    }
+
+    function requestReply(message) {
+      var controller = new AbortController();
+      var timer = setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT_MS);
+
+      return fetch(CONFIG.chatEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "sendMessage", sessionId: sessionId, chatInput: message }),
+        signal: controller.signal
+      })
+        .then(function (response) {
+          if (!response.ok) throw new Error("bad_response");
+          return response.json();
+        })
+        .then(function (result) {
+          var reply = result && typeof result.output === "string" ? result.output.trim() : "";
+          if (!reply) throw new Error("empty_reply");
+          return reply;
+        })
+        .finally(function () { clearTimeout(timer); });
+    }
+
+    launcher.addEventListener("click", openChat);
+    closeBtn.addEventListener("click", closeChat);
+    panel.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") closeChat();
+    });
+    panel.querySelectorAll("a").forEach(function (link) {
+      link.addEventListener("click", closeChat);
+    });
+
+    chatForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      if (isSending) return;
+
+      var message = input.value.trim();
+      if (!message) {
+        setChatStatus("כתבו שאלה ואז שליחה.", "error");
+        input.focus();
+        return;
+      }
+
+      setChatStatus("", null);
+      var userEl = addMessage(message, "user");
+      var waitEl = addMessage("מחפש תשובה...", "bot");
+      waitEl.classList.add("chat-msg-wait");
+      input.value = "";
+      setSending(true);
+
+      requestReply(message)
+        .then(function (reply) {
+          waitEl.classList.remove("chat-msg-wait");
+          waitEl.textContent = reply;
+        })
+        .catch(function () {
+          userEl.remove();
+          waitEl.remove();
+          input.value = message;
+          setChatStatus("לא הצלחנו לענות כרגע. אפשר לנסות שוב.", "error");
+        })
+        .finally(function () {
+          setSending(false);
+          input.focus();
+        });
+    });
+  }
+
+  initChat();
 
   /* ---------- Order form ---------- */
   var form = document.getElementById("orderForm");
