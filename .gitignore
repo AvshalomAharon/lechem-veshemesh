@@ -39,3 +39,6 @@ desktop.ini
 
 # Personal file - never commit or push
 לא למחוק.txt
+
+# Playwright MCP artifacts
+.playwright-mcp/
