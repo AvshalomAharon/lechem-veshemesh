@@ -465,5 +465,22 @@
       });
   });
 
+  // Pick up a newly uploaded price list on pages that are already open:
+  // when the tab comes back into view, and every few minutes while it is open.
+  var PRICE_REFRESH_MS = 3 * 60 * 1000;
+  var lastPriceLoad = Date.now();
+
+  function refreshPrices() {
+    lastPriceLoad = Date.now();
+    loadPrices(true);
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && Date.now() - lastPriceLoad > 15000) refreshPrices();
+  });
+  setInterval(function () {
+    if (document.visibilityState === "visible") refreshPrices();
+  }, PRICE_REFRESH_MS);
+
   loadPrices();
 })();
