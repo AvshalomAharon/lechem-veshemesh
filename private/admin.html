@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מערכת המאפייה · לחם ושמש</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --color-bg:#FDFBF7;
+    --color-bg-alt:#F5EFE3;
+    --color-text:#4A3525;
+    --color-text-soft:#7A6350;
+    --color-accent:#D97706;
+    --color-accent-dark:#B15E05;
+    --color-olive:#6B705C;
+    --color-olive-soft:#E7E7DC;
+    --color-border:#E7DFCF;
+    --color-error:#B3261E;
+    --color-error-bg:#FBEAE9;
+    --font-display:"Suez One","Segoe UI",Arial,sans-serif;
+    --font-body:"Heebo","Segoe UI",Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:var(--font-body);
+    background:var(--color-bg);
+    color:var(--color-text);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:28px 18px 48px;
+  }
+  header{
+    width:100%;
+    max-width:480px;
+    text-align:center;
+    margin-bottom:22px;
+  }
+  header img{
+    width:64px;
+    height:64px;
+    display:block;
+    margin:0 auto 10px;
+    border-radius:50%;
+  }
+  header h1{
+    font-family:var(--font-display);
+    font-weight:400;
+    font-size:26px;
+    margin:0 0 4px;
+    color:var(--color-text);
+  }
+  header p{
+    margin:0;
+    font-size:14px;
+    color:var(--color-text-soft);
+  }
+
+  main{
+    width:100%;
+    max-width:480px;
+    background:#fff;
+    border:1px solid var(--color-border);
+    border-radius:18px;
+    padding:22px;
+    box-shadow:0 2px 4px rgba(74,53,37,.04), 0 10px 28px rgba(74,53,37,.06);
+  }
+
+  /* ---- בחירת סוג מסמך ---- */
+  .type-field{margin-bottom:16px;}
+  .type-field.hidden{display:none;}
+  .type-field label{display:block;font-weight:700;font-size:14px;margin-bottom:6px;}
+  .type-field select{
+    width:100%;
+    min-height:48px;
+    padding:10px 12px;
+    border:1.5px solid var(--color-border);
+    border-radius:12px;
+    background:#fff;
+    color:var(--color-text);
+    font-family:var(--font-body);
+    font-size:16px;
+  }
+  .type-field select:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px;}
+  .type-hint{margin:6px 0 0;font-size:13px;color:var(--color-text-soft);line-height:1.5;}
+
+  /* ---- שלב: בחירה ---- */
+  .dropzone{
+    border:2px dashed var(--color-accent);
+    border-radius:14px;
+    background:var(--color-bg-alt);
+    padding:38px 16px;
+    text-align:center;
+    cursor:pointer;
+    transition:background .15s, border-color .15s;
+  }
+  .dropzone:hover, .dropzone:focus-visible{
+    background:#F1E4CC;
+    border-color:var(--color-accent-dark);
+  }
+  .dropzone .icon{font-size:38px;margin-bottom:10px;line-height:1;}
+  .dropzone .main-txt{font-weight:700;font-size:16px;}
+  .dropzone .sub-txt{color:var(--color-text-soft);font-size:13px;margin-top:6px;line-height:1.6;}
+  input[type=file]{display:none;}
+
+  /* ---- שלב: תצוגה מקדימה ---- */
+  .preview-wrap{display:none;}
+  .preview-wrap.active{display:block;}
+  .preview-img{
+    width:100%;
+    max-height:320px;
+    object-fit:contain;
+    border-radius:12px;
+    border:1px solid var(--color-border);
+    background:var(--color-bg-alt);
+    display:block;
+  }
+  .file-name{
+    margin-top:10px;
+    font-size:13px;
+    color:var(--color-text-soft);
+    text-align:center;
+    word-break:break-all;
+  }
+
+  .btn{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    font-family:var(--font-body);
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    min-height:48px;
+    transition:opacity .15s, transform .1s;
+  }
+  .btn:active{transform:scale(.99);}
+  .btn:disabled{opacity:.55;cursor:not-allowed;}
+  .btn-primary{
+    background:var(--color-accent);
+    color:#fff;
+    margin-top:16px;
+  }
+  .btn-primary:hover:not(:disabled){background:var(--color-accent-dark);}
+  .btn-secondary{
+    background:#fff;
+    color:var(--color-text-soft);
+    border:1.5px solid var(--color-border);
+    margin-top:10px;
+  }
+  .btn-secondary:hover{background:var(--color-bg-alt);}
+
+  /* ---- שלב: שליחה ---- */
+  .sending-wrap{display:none;text-align:center;padding:30px 10px;}
+  .sending-wrap.active{display:block;}
+  .spinner{
+    width:40px;height:40px;
+    border:4px solid var(--color-olive-soft);
+    border-top-color:var(--color-accent);
+    border-radius:50%;
+    margin:0 auto 16px;
+    animation:spin 0.9s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .sending-wrap p{font-size:15px;font-weight:600;margin:0;}
+
+  /* ---- שלב: הצלחה ---- */
+  .success-wrap{display:none;text-align:center;padding:20px 10px;}
+  .success-wrap.active{display:block;}
+  .success-icon{
+    width:60px;height:60px;
+    border-radius:50%;
+    background:var(--color-olive-soft);
+    color:var(--color-olive);
+    font-size:30px;
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 14px;
+  }
+  .success-wrap h2{
+    font-family:var(--font-display);
+    font-weight:400;
+    font-size:20px;
+    margin:0 0 8px;
+  }
+  .success-wrap p{
+    font-size:14px;
+    color:var(--color-text-soft);
+    line-height:1.6;
+    margin:0;
+  }
+
+  /* ---- שלב: שגיאה ---- */
+  .error-box{
+    display:none;
+    margin-top:14px;
+    background:var(--color-error-bg);
+    border:1px solid #F3C6C3;
+    color:var(--color-error);
+    padding:12px 14px;
+    border-radius:10px;
+    font-size:13.5px;
+    line-height:1.6;
+  }
+  .error-box.active{display:block;}
+
+  footer{
+    margin-top:20px;
+    text-align:center;
+    font-size:12px;
+    color:var(--color-text-soft);
+  }
+  .admin-bar{
+    width:100%;
+    max-width:480px;
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:12px;
+    font-size:14px;
+  }
+  .admin-bar a{
+    display:inline-flex;
+    align-items:center;
+    min-height:44px;
+    color:var(--color-text);
+    text-underline-offset:3px;
+  }
+  .admin-bar a:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px;}
+</style>
+</head>
+<body>
+
+<nav class="admin-bar" aria-label="ניווט במערכת">
+  <a href="/">חזרה לאתר</a>
+  <a href="/api/logout">יציאה</a>
+</nav>
+
+<header>
+  <img src="https://res.cloudinary.com/hno6nbir/image/upload/f_auto,q_auto,w_150/lechem-veshemesh/branding/logo.png" alt="לוגו לחם ושמש">
+  <h1>מערכת המאפייה</h1>
+  <p>חשבונית ספק, מחירון או מסמך אחר — בחרו סוג, צלמו או העלו קובץ, ותקבלו אישור למייל.</p>
+</header>
+
+<main>
+
+  <!-- בחירת סוג מסמך -->
+  <div class="type-field" id="typeField">
+    <label for="docType">סוג המסמך</label>
+    <select id="docType">
+      <option value="invoice" selected>חשבונית</option>
+      <option value="pricelist">מחירון</option>
+      <option value="other">אחר</option>
+    </select>
+    <p class="type-hint" id="typeHint" aria-live="polite"></p>
+  </div>
+
+  <!-- שלב 1: בחירת קובץ -->
+  <div id="pickStage">
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="בחירת מסמך לצילום או העלאה">
+      <div class="icon">📷</div>
+      <div class="main-txt">צלמו או בחרו מסמך</div>
+      <div class="sub-txt">מהטלפון: מצלמה ישירות. מהמחשב: בחירת קובץ תמונה.</div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*,application/pdf" capture="environment">
+  </div>
+
+  <!-- שלב 2: תצוגה מקדימה -->
+  <div class="preview-wrap" id="previewStage">
+    <img class="preview-img" id="previewImg" alt="תצוגה מקדימה של המסמך">
+    <div class="file-name" id="fileNameLabel"></div>
+    <button class="btn btn-primary" id="submitBtn">שליחה לעיבוד</button>
+    <button class="btn btn-secondary" id="reselectBtn">בחירה מחדש</button>
+  </div>
+
+  <!-- שלב 3: בשליחה -->
+  <div class="sending-wrap" id="sendingStage">
+    <div class="spinner"></div>
+    <p>שולחים את המסמך...</p>
+  </div>
+
+  <!-- שלב 4: הצלחה -->
+  <div class="success-wrap" id="successStage">
+    <div class="success-icon">✓</div>
+    <h2>המסמך נשלח!</h2>
+    <p>הוא בעיבוד עכשיו. תוך מספר דקות יישלח מייל אישור עם כל הפרטים — או הודעה אם משהו לא הסתדר.</p>
+    <button class="btn btn-primary" id="anotherBtn" style="margin-top:20px;">מסמך נוסף</button>
+  </div>
+
+  <div class="error-box" id="errorBox"></div>
+
+</main>
+
+<footer>לחם ושמש · מערכת מסמכים אוטומטית</footer>
+
+<script>
+const SUBMIT_URL = "https://avshalom.app.n8n.cloud/webhook/invoice-submit";
+// Filled in by the server (api/admin.js) only for a logged-in session; n8n ignores uploads without it.
+const UPLOAD_TOKEN = "__UPLOAD_TOKEN__";
+
+const pickStage = document.getElementById('pickStage');
+const previewStage = document.getElementById('previewStage');
+const sendingStage = document.getElementById('sendingStage');
+const successStage = document.getElementById('successStage');
+const errorBox = document.getElementById('errorBox');
+const typeField = document.getElementById('typeField');
+const docTypeSelect = document.getElementById('docType');
+const typeHint = document.getElementById('typeHint');
+
+const TYPE_HINTS = {
+  invoice: 'תתויק בדרייב ותירשם בטבלת החשבוניות.',
+  pricelist: 'יחליף את המחירון הקיים בטבלה ובחנות הידע של הסוכן.',
+  other: 'יתווסף לחנות הידע של הסוכן. קובץ באותו שם יוחלף.'
+};
+
+function updateTypeHint() {
+  typeHint.textContent = TYPE_HINTS[docTypeSelect.value] || '';
+}
+docTypeSelect.addEventListener('change', updateTypeHint);
+updateTypeHint();
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const previewImg = document.getElementById('previewImg');
+const fileNameLabel = document.getElementById('fileNameLabel');
+const submitBtn = document.getElementById('submitBtn');
+const reselectBtn = document.getElementById('reselectBtn');
+const anotherBtn = document.getElementById('anotherBtn');
+
+let selectedFile = null;
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files && fileInput.files[0]) setFile(fileInput.files[0]);
+});
+
+function setFile(file) {
+  selectedFile = file;
+  fileNameLabel.textContent = file.name;
+
+  if (file.type && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = (e) => { previewImg.src = e.target.result; previewImg.style.display = 'block'; };
+    reader.readAsDataURL(file);
+  } else {
+    previewImg.style.display = 'none';
+  }
+
+  showStage('preview');
+  errorBox.classList.remove('active');
+}
+
+reselectBtn.addEventListener('click', () => {
+  selectedFile = null;
+  fileInput.value = '';
+  showStage('pick');
+});
+
+anotherBtn.addEventListener('click', () => {
+  selectedFile = null;
+  fileInput.value = '';
+  showStage('pick');
+});
+
+submitBtn.addEventListener('click', async () => {
+  if (!selectedFile) return;
+  if (!UPLOAD_TOKEN || UPLOAD_TOKEN.indexOf('__') === 0) {
+    errorBox.textContent = 'ההעלאה עוד לא הוגדרה במערכת (חסר קוד העלאה בשרת).';
+    errorBox.classList.add('active');
+    return;
+  }
+  showStage('sending');
+  errorBox.classList.remove('active');
+
+  try {
+    const fd = new FormData();
+    fd.append('token', UPLOAD_TOKEN);
+    fd.append('docType', docTypeSelect.value);
+    // The file field keeps the name "invoice" - the n8n workflow reads it under that name for every document type.
+    fd.append('invoice', selectedFile, selectedFile.name);
+
+    const res = await fetch(SUBMIT_URL, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('קוד תשובה ' + res.status);
+
+    showStage('success');
+  } catch (err) {
+    showStage('preview');
+    errorBox.textContent = 'השליחה נכשלה: ' + err.message + '. בדקו את החיבור לאינטרנט ונסו שוב.';
+    errorBox.classList.add('active');
+  }
+});
+
+function showStage(stage) {
+  typeField.classList.toggle('hidden', stage === 'sending' || stage === 'success');
+  pickStage.style.display = stage === 'pick' ? 'block' : 'none';
+  previewStage.classList.toggle('active', stage === 'preview');
+  sendingStage.classList.toggle('active', stage === 'sending');
+  successStage.classList.toggle('active', stage === 'success');
+}
+</script>
+
+</body>
+</html>

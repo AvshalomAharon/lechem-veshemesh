@@ -1,11 +1,16 @@
 {
   "routes": [
     { "src": "^/$", "dest": "/api/index" },
+    { "src": "^/admin/?$", "dest": "/api/admin" },
+    { "src": "^/private(/.*)?$", "status": 404 },
     { "handle": "filesystem" }
   ],
   "functions": {
     "api/index.js": {
       "includeFiles": "index.html"
+    },
+    "api/admin.js": {
+      "includeFiles": "private/**"
     }
   }
 }
