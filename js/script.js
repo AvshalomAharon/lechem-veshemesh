@@ -11,7 +11,10 @@
     orderEndpoint: "https://avshalom.app.n8n.cloud/webhook/57a821a2-b150-4b14-a8cc-ead3ba117db0",
     // n8n "סוכן מאפייה" workflow — public Chat Trigger (webhook mode). The agent
     // answers only from the documents vector store (Supabase).
-    chatEndpoint: "https://avshalom.app.n8n.cloud/webhook/83346af6-2c60-4148-8150-b44a7687e89c/chat"
+    chatEndpoint: "https://avshalom.app.n8n.cloud/webhook/83346af6-2c60-4148-8150-b44a7687e89c/chat",
+    // GET -> { prices: { "<product name>": <number> } } from the Supabase price_list table.
+    // The prices written in index.html are only the fallback if this request fails.
+    pricesEndpoint: "https://avshalom.app.n8n.cloud/webhook/site-prices"
   };
 
   /* ---------- Mobile nav ---------- */
@@ -293,6 +296,55 @@
     }
   }
 
+  /* ---------- Live prices ----------
+   * Prices come from the Supabase price_list table (updated whenever a new price
+   * list is uploaded). The server re-checks every price on submit, so this only
+   * keeps what the customer sees in sync. If the request fails the prices in the
+   * HTML stay as they are.
+   */
+  var PRODUCT_NAMES = ["לחם כפרי מחמצת", "לחם שיפון", "חלה", "בורקס גבינה"];
+
+  function formatPrice(value) {
+    return String(Math.round(value * 100) / 100);
+  }
+
+  function parsePrices(data) {
+    var prices = data && data.prices;
+    if (!prices || typeof prices !== "object") return null;
+    var valid = PRODUCT_NAMES.every(function (name) {
+      return typeof prices[name] === "number" && isFinite(prices[name]) && prices[name] > 0;
+    });
+    return valid ? prices : null;
+  }
+
+  function applyPrices(prices) {
+    document.querySelectorAll("[data-price-for]").forEach(function (el) {
+      var price = prices[el.getAttribute("data-price-for")];
+      if (typeof price !== "number") return;
+      var suffix = el.getAttribute("data-price-suffix");
+      el.textContent = formatPrice(price) + " ₪" + (suffix ? " " + suffix : "");
+    });
+    productRows.forEach(function (row) {
+      var price = prices[row.getAttribute("data-product-name")];
+      if (typeof price === "number") row.setAttribute("data-product-price", String(price));
+    });
+    updateOrderSummary();
+  }
+
+  function loadPrices(forceFresh) {
+    if (!CONFIG.pricesEndpoint) return Promise.resolve();
+    return fetch(CONFIG.pricesEndpoint, forceFresh ? { cache: "reload" } : undefined)
+      .then(function (response) {
+        if (!response.ok) throw new Error("bad_response");
+        return response.json();
+      })
+      .then(function (data) {
+        var prices = parsePrices(data);
+        if (prices) applyPrices(prices);
+      })
+      .catch(function () { /* keep the prices already on the page */ });
+  }
+
   function setStatus(message, state) {
     statusEl.textContent = message;
     if (state) {
@@ -383,8 +435,13 @@
       body: JSON.stringify(payload)
     })
       .then(function (response) {
-        if (!response.ok) throw new Error("bad_response");
-        return response.json().catch(function () { return {}; });
+        if (response.ok) return response.json().catch(function () { return {}; });
+        // Keep the server's explanation (e.g. prices changed) so it can be shown to the customer.
+        return response.json().catch(function () { return {}; }).then(function (body) {
+          var error = new Error("bad_response");
+          error.body = body;
+          throw error;
+        });
       })
       .then(function (result) {
         var orderNumber = result && result.orderNumber;
@@ -392,11 +449,21 @@
         updateOrderSummary();
         showConfirmation(orderNumber);
       })
-      .catch(function () {
-        setStatus("השליחה נכשלה. אפשר לנסות שוב, או להזמין בטלפון 04-000-0000.", "error");
+      .catch(function (error) {
+        var body = error && error.body;
+        if (body && body.code === "PRICES_CHANGED") {
+          loadPrices(true);
+          setStatus("המחירים התעדכנו. בדקו את הסכום החדש ושלחו שוב.", "error");
+        } else if (body && body.success === false && typeof body.message === "string") {
+          setStatus(body.message, "error");
+        } else {
+          setStatus("השליחה נכשלה. אפשר לנסות שוב, או להזמין בטלפון 04-000-0000.", "error");
+        }
       })
       .finally(function () {
         setSubmitting(false);
       });
   });
+
+  loadPrices();
 })();
