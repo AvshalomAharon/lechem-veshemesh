@@ -42,6 +42,14 @@ test("db: a new-style secret key (sb_secret_...) is sent only in the apikey head
   assert.equal(calls[0].init.headers.Authorization, undefined);
 });
 
+test("db: a project URL pasted with /rest/v1/ on the end still gives a correct request URL", async function () {
+  const { fetchImpl, calls } = fakeFetch([{ status: 200, body: [] }, { status: 200, body: [] }]);
+  await createDb("https://x.supabase.co/rest/v1/", KEY, fetchImpl).getVersion("abc");
+  await createDb("  https://x.supabase.co/rest/v1  ", KEY, fetchImpl).getVersion("abc");
+  assert.equal(calls[0].url, "https://x.supabase.co/rest/v1/document_versions?id=eq.abc&select=*");
+  assert.equal(calls[1].url, "https://x.supabase.co/rest/v1/document_versions?id=eq.abc&select=*");
+});
+
 test("db: getVersion filters by id and returns null when missing", async function () {
   const { fetchImpl, calls } = fakeFetch([{ status: 200, body: [] }]);
   const db = createDb("https://x.supabase.co", KEY, fetchImpl);
