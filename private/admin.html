@@ -210,6 +210,49 @@
   }
   .error-box.active{display:block;}
 
+  /* ---- צינור ההחלפה ---- */
+  .pipeline-wrap{display:none;}
+  .pipeline-wrap.active{display:block;}
+  .pipeline-title{font-family:var(--font-display);font-weight:400;font-size:20px;margin:0 0 14px;}
+  .step-list{list-style:none;margin:0;padding:0;display:grid;gap:8px;}
+  .step-list li{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    min-height:48px;padding:10px 14px;
+    border:1.5px solid var(--color-border);border-radius:12px;background:#fff;
+  }
+  .step-name{font-weight:700;font-size:15px;}
+  .step-state{font-size:13px;color:var(--color-text-soft);}
+  .step-list li[data-state="running"]{border-color:var(--color-accent);background:var(--color-bg-alt);}
+  .step-list li[data-state="done"]{border-color:var(--color-olive);}
+  .step-list li[data-state="done"] .step-name::before{content:"✓ ";color:var(--color-olive);}
+  .step-list li[data-state="failed"]{border-color:var(--color-error);background:var(--color-error-bg);}
+  .step-list li[data-state="failed"] .step-name::before{content:"✗ ";color:var(--color-error);}
+  .step-list li[data-state="failed"] .step-state{color:var(--color-error);font-weight:700;}
+  .pipeline-note{margin:12px 0 0;font-size:13px;color:var(--color-text-soft);line-height:1.6;}
+  .result-box{display:none;margin-top:14px;padding:12px 14px;border-radius:10px;font-size:14px;line-height:1.6;}
+  .result-box.active{display:block;}
+  .result-box.ok{background:var(--color-olive-soft);color:var(--color-text);border:1px solid var(--color-olive);}
+  .result-box.fail{background:var(--color-error-bg);color:var(--color-error);border:1px solid #F3C6C3;}
+  .result-box strong{display:block;margin-bottom:2px;}
+  .pipeline-actions{display:none;}
+  .pipeline-actions.active{display:block;}
+
+  /* ---- מסמכים פעילים ---- */
+  .docs-card{
+    width:100%;max-width:480px;margin-top:18px;background:#fff;
+    border:1px solid var(--color-border);border-radius:18px;padding:18px 18px 12px;
+    box-shadow:0 2px 4px rgba(74,53,37,.04);
+  }
+  .docs-card h2{font-family:var(--font-display);font-weight:400;font-size:18px;margin:0 0 10px;}
+  .docs-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13.5px;}
+  .docs-table th{text-align:start;font-weight:700;color:var(--color-text-soft);padding:6px 4px;border-bottom:1.5px solid var(--color-border);}
+  .docs-table td{padding:9px 4px;border-bottom:1px solid var(--color-border);overflow-wrap:anywhere;vertical-align:top;}
+  .docs-table th:nth-child(1){width:38%;}
+  .docs-table th:nth-child(2){width:15%;}
+  .docs-table th:nth-child(3){width:30%;}
+  .docs-table th:nth-child(4){width:17%;}
+  .docs-status{margin:8px 0 0;font-size:13px;color:var(--color-text-soft);}
+
   footer{
     margin-top:20px;
     text-align:center;
@@ -244,7 +287,7 @@
 <header>
   <img src="https://res.cloudinary.com/hno6nbir/image/upload/f_auto,q_auto,w_150/lechem-veshemesh/branding/logo.png" alt="לוגו לחם ושמש">
   <h1>מערכת המאפייה</h1>
-  <p>חשבונית ספק, מחירון או מסמך אחר — בחרו סוג, צלמו או העלו קובץ, ותקבלו אישור למייל.</p>
+  <p>חשבונית ספק, מחירון או מסמך אחר — בחרו סוג, צלמו או העלו קובץ. חשבונית מקבלת אישור במייל; מחירון ומסמך אחר מתעדכנים בבוט רק אחרי בדיקה.</p>
 </header>
 
 <main>
@@ -267,7 +310,7 @@
       <div class="main-txt">צלמו או בחרו מסמך</div>
       <div class="sub-txt">מהטלפון: מצלמה ישירות. מהמחשב: בחירת קובץ תמונה.</div>
     </div>
-    <input type="file" id="fileInput" accept="image/*,application/pdf" capture="environment">
+    <input type="file" id="fileInput" accept="image/*,application/pdf,.md,.txt,text/markdown,text/plain">
   </div>
 
   <!-- שלב 2: תצוגה מקדימה -->
@@ -284,6 +327,24 @@
     <p>שולחים את המסמך...</p>
   </div>
 
+  <!-- שלב 3ב: צינור ההחלפה (מחירון / אחר) -->
+  <div class="pipeline-wrap" id="pipelineStage">
+    <h2 class="pipeline-title">מעדכנים את חנות הידע</h2>
+    <ol class="step-list" id="stepList">
+      <li data-step="receive" data-state="pending"><span class="step-name">קבלה</span><span class="step-state">ממתין</span></li>
+      <li data-step="process" data-state="pending"><span class="step-name">עיבוד</span><span class="step-state">ממתין</span></li>
+      <li data-step="verify" data-state="pending"><span class="step-name">בדיקה</span><span class="step-state">ממתין</span></li>
+      <li data-step="activate" data-state="pending"><span class="step-name">החלפה</span><span class="step-state">ממתין</span></li>
+    </ol>
+    <p class="pipeline-note">הגרסה הקודמת נשארת פעילה עד שהחדשה נבדקה.</p>
+    <div class="result-box" id="resultBox" role="status" aria-live="polite"></div>
+    <div class="pipeline-actions" id="pipelineActions">
+      <button class="btn btn-primary" id="retryBtn" type="button">ניסיון נוסף</button>
+      <button class="btn btn-secondary" id="pipelineReselectBtn" type="button">בחירה מחדש</button>
+      <button class="btn btn-primary" id="pipelineAnotherBtn" type="button">מסמך נוסף</button>
+    </div>
+  </div>
+
   <!-- שלב 4: הצלחה -->
   <div class="success-wrap" id="successStage">
     <div class="success-icon">✓</div>
@@ -296,6 +357,15 @@
 
 </main>
 
+<section class="docs-card" aria-labelledby="docsTitle">
+  <h2 id="docsTitle">מסמכים פעילים בחנות הידע</h2>
+  <table class="docs-table">
+    <thead><tr><th scope="col">מסמך</th><th scope="col">סוג</th><th scope="col">עודכן</th><th scope="col">חתיכות</th></tr></thead>
+    <tbody id="docsBody"></tbody>
+  </table>
+  <p class="docs-status" id="docsStatus" role="status">טוען...</p>
+</section>
+
 <footer>לחם ושמש · מערכת מסמכים אוטומטית</footer>
 
 <script>
@@ -307,6 +377,7 @@ const pickStage = document.getElementById('pickStage');
 const previewStage = document.getElementById('previewStage');
 const sendingStage = document.getElementById('sendingStage');
 const successStage = document.getElementById('successStage');
+const pipelineStage = document.getElementById('pipelineStage');
 const errorBox = document.getElementById('errorBox');
 const typeField = document.getElementById('typeField');
 const docTypeSelect = document.getElementById('docType');
@@ -314,8 +385,8 @@ const typeHint = document.getElementById('typeHint');
 
 const TYPE_HINTS = {
   invoice: 'תתויק בדרייב ותירשם בטבלת החשבוניות.',
-  pricelist: 'יחליף את המחירון הקיים בטבלה ובחנות הידע של הסוכן.',
-  other: 'יתווסף לחנות הידע של הסוכן. קובץ באותו שם יוחלף.'
+  pricelist: 'יחליף את המחירון הפעיל רק אחרי שהחדש נבדק. המחירים באתר ובבוט מתעדכנים יחד.',
+  other: 'יחליף קובץ באותו שם, או יתווסף לחנות הידע של הבוט, רק אחרי בדיקה.'
 };
 
 function updateTypeHint() {
@@ -371,7 +442,11 @@ anotherBtn.addEventListener('click', () => {
   showStage('pick');
 });
 
-submitBtn.addEventListener('click', async () => {
+submitBtn.addEventListener('click', () => {
+  if (docTypeSelect.value === 'invoice') sendInvoice(); else runPipeline();
+});
+
+async function sendInvoice() {
   if (!selectedFile) return;
   if (!UPLOAD_TOKEN || UPLOAD_TOKEN.indexOf('__') === 0) {
     errorBox.textContent = 'ההעלאה עוד לא הוגדרה במערכת (חסר קוד העלאה בשרת).';
@@ -397,15 +472,204 @@ submitBtn.addEventListener('click', async () => {
     errorBox.textContent = 'השליחה נכשלה: ' + err.message + '. בדקו את החיבור לאינטרנט ונסו שוב.';
     errorBox.classList.add('active');
   }
-});
+}
 
 function showStage(stage) {
-  typeField.classList.toggle('hidden', stage === 'sending' || stage === 'success');
+  typeField.classList.toggle('hidden', stage === 'sending' || stage === 'success' || stage === 'pipeline');
   pickStage.style.display = stage === 'pick' ? 'block' : 'none';
   previewStage.classList.toggle('active', stage === 'preview');
   sendingStage.classList.toggle('active', stage === 'sending');
   successStage.classList.toggle('active', stage === 'success');
+  pipelineStage.classList.toggle('active', stage === 'pipeline');
 }
+
+// ---- Pricelist / other: safe replace in the knowledge base (api/docs.js) ----
+const DOCS_API = '/api/docs';
+const STEP_ORDER = ['receive', 'process', 'verify', 'activate'];
+const STATE_LABELS = { pending: 'ממתין', running: 'רץ...', done: 'הושלם', failed: 'נכשל' };
+const POLL_INTERVAL_MS = 2500;
+const POLL_LIMIT_MS = 6 * 60 * 1000;
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+
+const stepList = document.getElementById('stepList');
+const resultBox = document.getElementById('resultBox');
+const pipelineActions = document.getElementById('pipelineActions');
+const retryBtn = document.getElementById('retryBtn');
+const pipelineReselectBtn = document.getElementById('pipelineReselectBtn');
+const pipelineAnotherBtn = document.getElementById('pipelineAnotherBtn');
+const docsBody = document.getElementById('docsBody');
+const docsStatus = document.getElementById('docsStatus');
+
+let pipelineRunning = false;
+let currentStep = 'receive';
+
+class StepError extends Error {
+  constructor(step, message) {
+    super(message);
+    this.step = step;
+  }
+}
+
+function setStep(step, state) {
+  const item = stepList.querySelector('[data-step="' + step + '"]');
+  item.dataset.state = state;
+  item.querySelector('.step-state').textContent = STATE_LABELS[state];
+}
+
+function stepLabel(step) {
+  const item = stepList.querySelector('[data-step="' + step + '"] .step-name');
+  return item ? item.textContent : step;
+}
+
+function resetPipelineUi() {
+  STEP_ORDER.forEach((step) => setStep(step, 'pending'));
+  resultBox.className = 'result-box';
+  resultBox.textContent = '';
+  pipelineActions.classList.remove('active');
+}
+
+function showResult(ok, title, text) {
+  resultBox.className = 'result-box active ' + (ok ? 'ok' : 'fail');
+  resultBox.textContent = '';
+  const strong = document.createElement('strong');
+  strong.textContent = title;
+  resultBox.appendChild(strong);
+  resultBox.appendChild(document.createTextNode(text));
+  pipelineActions.classList.add('active');
+  retryBtn.style.display = ok ? 'none' : 'block';
+  pipelineReselectBtn.style.display = ok ? 'none' : 'block';
+  pipelineAnotherBtn.style.display = ok ? 'block' : 'none';
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function callDocs(action, step, init) {
+  let res;
+  try {
+    res = await fetch(DOCS_API + '?action=' + action, Object.assign({ credentials: 'same-origin' }, init));
+  } catch (err) {
+    throw new StepError(step, 'אין חיבור לשרת. בדקו את החיבור לאינטרנט ונסו שוב.');
+  }
+  let data = null;
+  try { data = await res.json(); } catch (err) { /* not JSON */ }
+  if (res.status === 401) throw new StepError(step, 'פג תוקף הכניסה. יש לרענן את הדף ולהתחבר מחדש.');
+  if (!res.ok || !data || !data.ok) {
+    throw new StepError((data && data.step) || step, (data && data.message) || 'שגיאה בשרת (' + res.status + ').');
+  }
+  return data;
+}
+
+function jsonPost(payload) {
+  return { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) };
+}
+
+async function pollProcess(versionId) {
+  const started = Date.now();
+  for (;;) {
+    const result = await callDocs('process', 'process', jsonPost({ versionId: versionId }));
+    if (result.state === 'done') return result;
+    if (Date.now() - started > POLL_LIMIT_MS) throw new StepError('process', 'העיבוד נמשך יותר מדי זמן. נסו שוב.');
+    await sleep(POLL_INTERVAL_MS);
+  }
+}
+
+async function runPipeline() {
+  if (pipelineRunning || !selectedFile) return;
+  pipelineRunning = true;
+  errorBox.classList.remove('active');
+  resetPipelineUi();
+  showStage('pipeline');
+
+  try {
+    currentStep = 'receive';
+    if (selectedFile.size > MAX_UPLOAD_BYTES) {
+      throw new StepError('receive', 'הקובץ גדול מדי (מעל 4MB). אפשר לשלוח PDF או תמונה קטנה יותר.');
+    }
+    setStep('receive', 'running');
+    const received = await callDocs('upload', 'receive', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'x-doc-type': docTypeSelect.value,
+        'x-file-name': encodeURIComponent(selectedFile.name)
+      },
+      body: selectedFile
+    });
+    setStep('receive', 'done');
+
+    currentStep = 'process';
+    setStep('process', 'running');
+    await pollProcess(received.versionId);
+    setStep('process', 'done');
+
+    currentStep = 'verify';
+    setStep('verify', 'running');
+    await callDocs('verify', 'verify', jsonPost({ versionId: received.versionId }));
+    setStep('verify', 'done');
+
+    currentStep = 'activate';
+    setStep('activate', 'running');
+    const activated = await callDocs('activate', 'activate', jsonPost({ versionId: received.versionId }));
+    setStep('activate', 'done');
+
+    showResult(true, 'המסמך הוחלף בהצלחה. ', 'נשמרו ' + activated.chunkCount + ' חתיכות. הבוט משתמש עכשיו בגרסה החדשה.');
+    loadActiveDocs();
+  } catch (err) {
+    const failedStep = (err && err.step) || currentStep;
+    setStep(failedStep, 'failed');
+    showResult(false, 'ההחלפה נכשלה בשלב ' + stepLabel(failedStep) + '. ', err.message + ' הגרסה הקודמת נשארה פעילה, ושום דבר חלקי לא נשמר.');
+  } finally {
+    pipelineRunning = false;
+  }
+}
+
+retryBtn.addEventListener('click', runPipeline);
+pipelineReselectBtn.addEventListener('click', () => {
+  selectedFile = null;
+  fileInput.value = '';
+  showStage('pick');
+});
+pipelineAnotherBtn.addEventListener('click', () => {
+  selectedFile = null;
+  fileInput.value = '';
+  showStage('pick');
+});
+
+const TYPE_LABELS = { pricelist: 'מחירון', other: 'אחר' };
+
+function renderDocs(documents) {
+  docsBody.textContent = '';
+  documents.forEach((doc) => {
+    const row = document.createElement('tr');
+    const cells = [
+      doc.name,
+      TYPE_LABELS[doc.type] || doc.type,
+      doc.updatedAt ? new Date(doc.updatedAt).toLocaleString('he-IL', { dateStyle: 'short', timeStyle: 'short' }) : '—',
+      String(doc.chunkCount == null ? '—' : doc.chunkCount)
+    ];
+    cells.forEach((text) => {
+      const cell = document.createElement('td');
+      cell.textContent = text;
+      row.appendChild(cell);
+    });
+    docsBody.appendChild(row);
+  });
+  docsStatus.textContent = documents.length ? '' : 'אין מסמכים פעילים.';
+}
+
+async function loadActiveDocs() {
+  try {
+    const res = await fetch(DOCS_API + '?action=list', { credentials: 'same-origin' });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error('list failed');
+    renderDocs(data.documents);
+  } catch (err) {
+    docsStatus.textContent = 'לא הצלחנו לטעון את רשימת המסמכים.';
+  }
+}
+loadActiveDocs();
 </script>
 
 </body>

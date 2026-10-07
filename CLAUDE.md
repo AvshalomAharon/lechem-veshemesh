@@ -35,6 +35,10 @@ api/admin.js         "/admin": דף כניסה, ולמחוברים — דף מע
 api/login.js         POST /api/login — בדיקת שם משתמש וסיסמה בשרת ויצירת עוגיית session חתומה
 api/logout.js        GET /api/logout — ניקוי העוגייה
 lib/session.js      יצירה ואימות של עוגיית ה-session (HMAC, תוקף 8 שעות)
+api/docs.js          /api/docs?action=upload|process|verify|activate|list — העלאת מחירון/מסמך "אחר" לחנות הידע עם החלפה בטוחה (דורש session)
+lib/docs/            הלוגיקה של ההחלפה הבטוחה (pipeline, chunker, prices, לקוחות Supabase/OpenAI/LlamaParse)
+docs/                תיעוד פנימי (חסום ב-vercel.json, לא מוגש לציבור): rag-pipeline (SQL ורשימת פריסה), rag-test (מבחן הבוט), superpowers (תכנון)
+test/                בדיקות node:test ושרת תצוגה מקומי עם שירותים מדומים — להריץ: node --test "test/*.test.js"
 private/            login.html, admin.html — מוגשים רק דרך api/admin.js (גישה ישירה נחסמת ב-404)
 css/styles.css       כל ה-CSS (custom properties, mobile-first)
 js/script.js          כל ה-JS (config, validation, submission)
@@ -187,6 +191,9 @@ Flow בפועל: **Website Order Form → n8n Webhook → ולידציה בצד 
 * **הגנה על ההעלאה עצמה:** ה-webhook של n8n (`invoice-submit`) ציבורי, ולכן `api/admin.js` מזריק לדף המחובר בלבד קוד העלאה (`UPLOAD_TOKEN`, משתנה סביבה ב-Vercel), וה-workflow ב-n8n ("🔐 אימות קוד העלאה") מתעלם מכל העלאה בלי הקוד. שינוי הקוד דורש לעדכן גם את משתנה הסביבה וגם את הצומת ב-n8n.
 * ניסיונות כניסה שגויים מושהים, ויש הגבלה של 5 ניסיונות ב-10 דקות לכל IP (בצד השרת, ברמה סבירה בלבד).
 * דף `שיעור 9/index.html` המקורי הוחלף ב-`private/admin.html`; אין להעלות מסמכים דרכו.
+* **העלאת מחירון / "אחר" (החלפה בטוחה):** `private/admin.html` שולח ל-`/api/docs` (לא ל-n8n). ארבעה שלבים אמיתיים: קבלה, עיבוד (פענוח LlamaParse, חיתוך 1000/100, embeddings `text-embedding-3-small`, הכנסה ל-`documents_staging`), בדיקה (ספירת חתיכות, גודל embedding, ולמחירון כללי המחירים ובדיקה שכל מחיר מופיע בטקסט), החלפה (`activate_document_version` — טרנזקציה אחת שמעדכנת `documents` ו-`price_list` יחד). הבוט קורא רק מ-`documents`, ולכן אף פעם לא רואה גרסה שלא אומתה. בכישלון מוחקים את שורות ה-staging והגרסה הקודמת נשארת. חשבוניות עדיין עוברות ל-n8n.
+* **משתני סביבה ב-Vercel (בנוסף לקיימים):** `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, `LLAMAPARSE_API_KEY`, `OPENAI_MODEL` (מודל חילוץ המחירים). אסור לכתוב אותם בקוד או ב-git. ה-SQL נמצא ב-`docs/rag-pipeline/schema.sql` ומורץ ידנית ב-SQL Editor (רשימת פריסה ב-`docs/rag-pipeline/README.md`).
+* הצמתים של מחירון ו"אחר" ב-workflow "פענוח חשבוניות" ב-n8n כבר לא נקראים מהמסך; אין למחוק אותם בלי לשאול.
 
 ---
 
