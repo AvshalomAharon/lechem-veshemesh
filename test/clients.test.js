@@ -34,6 +34,14 @@ test("db: insertVersion posts to PostgREST with the service key and returns the 
   assert.equal(calls[0].init.headers.Prefer, "return=representation");
 });
 
+test("db: a new-style secret key (sb_secret_...) is sent only in the apikey header", async function () {
+  const { fetchImpl, calls } = fakeFetch([{ status: 200, body: [] }]);
+  const db = createDb("https://x.supabase.co", "sb_secret_abc123", fetchImpl);
+  await db.getVersion("abc");
+  assert.equal(calls[0].init.headers.apikey, "sb_secret_abc123");
+  assert.equal(calls[0].init.headers.Authorization, undefined);
+});
+
 test("db: getVersion filters by id and returns null when missing", async function () {
   const { fetchImpl, calls } = fakeFetch([{ status: 200, body: [] }]);
   const db = createDb("https://x.supabase.co", KEY, fetchImpl);
