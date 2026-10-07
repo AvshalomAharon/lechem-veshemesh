@@ -156,6 +156,37 @@ test("pipeline errors map to status, step, message and previousKept", async func
   assert.ok(res.body.message.length > 0);
 });
 
+test("a service error that carries a safe detail shows it to the logged-in admin", async function () {
+  const { deps } = createFakeDeps();
+  deps.db.listActive = async function () {
+    const error = new Error("supabase GET /document_versions 404: relation does not exist");
+    error.detail = error.message;
+    throw error;
+  };
+  const handler = createHandler(function () { return deps; });
+  const res = fakeRes();
+  await handler(request({ action: "list", method: "GET" }), res);
+  assert.equal(res.statusCode, 500);
+  assert.equal(res.body.code, "server_error");
+  assert.match(res.body.detail, /supabase GET \/document_versions 404/);
+});
+
+test("a failed pipeline step also passes the safe detail along", async function () {
+  const { deps } = createFakeDeps();
+  deps.embed = async function () {
+    const error = new Error("openai embeddings 401");
+    error.detail = error.message;
+    throw error;
+  };
+  const handler = createHandler(function () { return deps; });
+  let res = fakeRes();
+  await handler(request({ action: "upload", headers: { "x-doc-type": "other", "x-file-name": "a.md" }, body: Buffer.from("טקסט") }), res);
+  res = fakeRes();
+  await handler(request(Object.assign({ action: "process" }, json({ versionId: "v1" }))), res);
+  assert.equal(res.body.step, "process");
+  assert.match(res.body.detail, /openai embeddings 401/);
+});
+
 test("an unexpected error is a generic 500 without internals", async function () {
   const { deps } = createFakeDeps();
   deps.db.listActive = async function () { throw new Error("connection string leaked here"); };

@@ -556,7 +556,8 @@ async function callDocs(action, step, init) {
   try { data = await res.json(); } catch (err) { /* not JSON */ }
   if (res.status === 401) throw new StepError(step, 'פג תוקף הכניסה. יש לרענן את הדף ולהתחבר מחדש.');
   if (!res.ok || !data || !data.ok) {
-    throw new StepError((data && data.step) || step, (data && data.message) || 'שגיאה בשרת (' + res.status + ').');
+    const detail = data && data.detail ? ' (פרטים טכניים: ' + data.detail + ')' : '';
+    throw new StepError((data && data.step) || step, ((data && data.message) || 'שגיאה בשרת (' + res.status + ').') + detail);
   }
   return data;
 }
@@ -663,10 +664,10 @@ async function loadActiveDocs() {
   try {
     const res = await fetch(DOCS_API + '?action=list', { credentials: 'same-origin' });
     const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error('list failed');
+    if (!res.ok || !data.ok) throw new StepError('list', (data && (data.detail || data.message)) || 'list failed');
     renderDocs(data.documents);
   } catch (err) {
-    docsStatus.textContent = 'לא הצלחנו לטעון את רשימת המסמכים.';
+    docsStatus.textContent = 'לא הצלחנו לטעון את רשימת המסמכים.' + (err instanceof StepError ? ' (' + err.message + ')' : '');
   }
 }
 loadActiveDocs();

@@ -100,6 +100,7 @@ test("db: an error response throws without leaking the key", async function () {
   await assert.rejects(db.activate("abc"), function (err) {
     assert.match(err.message, /version_not_verified/);
     assert.doesNotMatch(err.message, new RegExp(KEY));
+    assert.equal(err.detail, err.message); // safe to show to the logged-in admin
     return true;
   });
 });
@@ -124,6 +125,7 @@ test("embedder: an API error throws a generic error without the key", async func
   await assert.rejects(embed(["a"]), function (err) {
     assert.match(err.message, /401/);
     assert.doesNotMatch(err.message, /sk-test/);
+    assert.equal(err.detail, err.message);
     return true;
   });
 });

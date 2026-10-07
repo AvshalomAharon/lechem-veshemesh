@@ -100,11 +100,17 @@ function createHandler(getDeps) {
           step: error.step,
           message: error.message,
           versionId: error.versionId || undefined,
+          detail: error.detail || undefined,
           previousKept: true
         });
       }
       console.error("api/docs unexpected error:", error && error.message);
-      return res.status(500).json({ ok: false, code: "server_error", message: "אירעה שגיאה בשרת. נסו שוב." });
+      return res.status(500).json({
+        ok: false,
+        code: "server_error",
+        message: "אירעה שגיאה בשרת. נסו שוב.",
+        detail: (error && error.detail) || undefined
+      });
     }
   };
 }
