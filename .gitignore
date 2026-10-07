@@ -42,3 +42,6 @@ desktop.ini
 
 # Playwright MCP artifacts
 .playwright-mcp/
+
+# Local homework evidence (screenshots are attached to the email by hand, not published)
+docs/rag-test/evidence/
