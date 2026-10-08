@@ -8,6 +8,11 @@ const MAX_FAILURES = 5;
 const WINDOW_MS = 10 * 60 * 1000;
 const FAILURE_DELAY_MS = 700;
 
+// n8n "התראה: כניסה מוצלחת למערכת" webhook (public URL, no secret in it). Called only after a correct
+// username and password; it emails the owner, at most once per 30 minutes (limited inside n8n).
+const LOGIN_NOTIFY_URL = "https://avshalom.app.n8n.cloud/webhook/admin-login-success";
+const LOGIN_NOTIFY_TIMEOUT_MS = 2000;
+
 // Best-effort limit per IP (serverless instances do not share memory, so this only slows
 // down simple brute-force attempts; the delay on every failure does the rest).
 const failures = new Map();
@@ -43,6 +48,26 @@ function readBody(req) {
     return JSON.parse(body || "{}");
   } catch (error) {
     return {};
+  }
+}
+
+// Sends only the browser's user agent (no username, password or IP). Awaited, because a serverless
+// function may be frozen right after the response, but with a short timeout and every error swallowed:
+// a failed notification must never block or fail the login.
+async function notifyLogin(req) {
+  const controller = new AbortController();
+  const timer = setTimeout(function () { controller.abort(); }, LOGIN_NOTIFY_TIMEOUT_MS);
+  try {
+    await fetch(LOGIN_NOTIFY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userAgent: String((req.headers && req.headers["user-agent"]) || "") }),
+      signal: controller.signal
+    });
+  } catch (error) {
+    // Ignored on purpose.
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -85,6 +110,7 @@ module.exports = async function handler(req, res) {
   }
 
   failures.delete(ip);
+  await notifyLogin(req);
   res.setHeader("Set-Cookie", createSessionCookie(adminUser, secret));
   return res.status(200).json({ ok: true });
 };
