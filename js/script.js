@@ -16,16 +16,16 @@
     // The prices written in index.html are only the fallback if this request fails.
     pricesEndpoint: "https://avshalom.app.n8n.cloud/webhook/site-prices",
     // n8n "התראה: כניסה למערכת המאפייה" — POST on a click of the footer "כניסה למערכת המאפייה" link.
-    // n8n emails the owner (at most one email per 30 minutes). Nothing else triggers it.
+    // n8n emails the owner (at most one email per 2 minutes). Nothing else triggers it.
     adminEntryEndpoint: "https://avshalom.app.n8n.cloud/webhook/admin-entry-click"
   };
 
   /* ---------- Back-office entry notification ----------
    * A quiet beacon on click; the link itself navigates to /admin as usual. A browser
-   * reports at most once per 30 minutes, so repeated clicks do not add n8n executions.
+   * reports at most once per 2 minutes, so repeated clicks do not add n8n executions.
    */
   var ADMIN_NOTIFY_KEY = "adminEntryNotifiedAt";
-  var ADMIN_NOTIFY_WINDOW_MS = 30 * 60 * 1000;
+  var ADMIN_NOTIFY_WINDOW_MS = 2 * 60 * 1000;
   var adminLink = document.querySelector(".footer-admin");
 
   if (adminLink && CONFIG.adminEntryEndpoint && navigator.sendBeacon) {

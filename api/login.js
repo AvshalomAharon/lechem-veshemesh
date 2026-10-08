@@ -9,7 +9,7 @@ const WINDOW_MS = 10 * 60 * 1000;
 const FAILURE_DELAY_MS = 700;
 
 // n8n "התראה: כניסה מוצלחת למערכת" webhook (public URL, no secret in it). Called only after a correct
-// username and password; it emails the owner, at most once per 30 minutes (limited inside n8n).
+// username and password; it emails the owner, at most once per 2 minutes (limited inside n8n).
 const LOGIN_NOTIFY_URL = "https://avshalom.app.n8n.cloud/webhook/admin-login-success";
 const LOGIN_NOTIFY_TIMEOUT_MS = 2000;
 
