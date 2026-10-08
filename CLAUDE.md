@@ -194,6 +194,7 @@ Flow בפועל: **Website Order Form → n8n Webhook → ולידציה בצד 
 * **העלאת מחירון / "אחר" (החלפה בטוחה):** `private/admin.html` שולח ל-`/api/docs` (לא ל-n8n). ארבעה שלבים אמיתיים: קבלה, עיבוד (פענוח LlamaParse, חיתוך 1000/100, embeddings `text-embedding-3-small`, הכנסה ל-`documents_staging`), בדיקה (ספירת חתיכות, גודל embedding, ולמחירון כללי המחירים ובדיקה שכל מחיר מופיע בטקסט), החלפה (`activate_document_version` — טרנזקציה אחת שמעדכנת `documents` ו-`price_list` יחד). הבוט קורא רק מ-`documents`, ולכן אף פעם לא רואה גרסה שלא אומתה. בכישלון מוחקים את שורות ה-staging והגרסה הקודמת נשארת. חשבוניות עדיין עוברות ל-n8n.
 * **משתני סביבה ב-Vercel (בנוסף לקיימים):** `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, `LLAMAPARSE_API_KEY`, `OPENAI_MODEL` (מודל חילוץ המחירים). אסור לכתוב אותם בקוד או ב-git. ה-SQL נמצא ב-`docs/rag-pipeline/schema.sql` ומורץ ידנית ב-SQL Editor (רשימת פריסה ב-`docs/rag-pipeline/README.md`).
 * הצמתים של מחירון ו"אחר" ב-workflow "פענוח חשבוניות" ב-n8n כבר לא נקראים מהמסך; אין למחוק אותם בלי לשאול.
+* **התראה על כניסה למערכת:** לחיצה על "כניסה למערכת המאפייה" בפוטר שולחת `sendBeacon` ל-`CONFIG.adminEntryEndpoint` (`js/script.js`), וה-workflow "התראה: כניסה למערכת המאפייה" ב-n8n שולח מייל לבעל העסק (נושא: "מישהו נכנס למערכת"). טריגר ה-webhook הוא היחיד, בלי טריגר זמן. מגבלות: דפדפן מדווח פעם ב-30 דקות (localStorage), ו-n8n שולח מייל אחד לכל 30 דקות. בלי כתובת IP. לחיצה אינה כניסה מוצלחת.
 
 ---
 
